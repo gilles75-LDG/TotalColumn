@@ -1,0 +1,31 @@
+Notes on running sites.
+
+robodome commands:
+    GOPN -> opens the dome
+    GCLS -> (should) close the dome
+    G### -> rotate to particular angle (or what it thinks it is that angle...), must be 3 digits, i.e.) G030 for 30 degrees
+    GTRN -> Train dome location (to be done after dome has been manually rotated to 0 degrees [N] )    
+    a    -> auto mode (this opens the dome and points it in the direction of the sun when the SZA <85, and when good weather conditions are detected)
+
+ 
+typical sun offsets are given in (elev,az)
+
+Downsview = Lizzy2:
+    Robodome -> icon on taskbar
+    Typical Sun offset -> (-3,0)
+    weather data -> icon on taskbar (always running unless powered off)
+    BrukkerPy -> Works
+    Data backup -> manual. in cygwin run `bash /cygdrive/c/Backup/backup-data.sh`
+    Notes:
+        Deadspot in rotation ~220 degrees, sometimes needs checking in afternoon
+
+Egbert = Harry1:
+    Robodome -> icon on taskbar
+    Typical Sun offset = (0,-2)
+    weather data -> always on unless powered off. using Anaconda3 terminal, navigate to Desktop\em-27_aux_scripts\ , run `\python Vaisala_read.py`
+    Data backup -> automatic
+    Notes:
+        Site is windy, dome closes often.
+
+
+

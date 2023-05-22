@@ -12,6 +12,7 @@ nc_path_pre = "/home/lawson/Research/Data/EM27SUN/nc_files/"
 ta_paths = Glob.glob("ta*.nc", nc_path_pre)
 tb_paths = Glob.glob("tb*.nc", nc_path_pre)
 
+
 function unravel(thing)
     tmp = zeros( Int( sum( [ length(i) for i in thing ] ) ) )
     counter=1
