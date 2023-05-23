@@ -539,14 +539,20 @@ points.angle_te = [90 .- atand((row.y_te - row.y_WM) / (row.x_te - row.x_WM)) fo
 
 #along axis wind strength...
 # wind_10_min1.tf_wpar =
-wind_10_min1.tf_wpar = [cosd(points.angle_tf[1] .- i.wdir ) .* i.wspd  for i in eachrow(wind_10_min1)]
-wind_10_min1.te_wpar = [cosd(points.angle_te[1] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min1)]
+wind_10_min1.tf_wpar = [cosd(points.angle_tf[1] .- i.wdir ) for i in eachrow(wind_10_min1)]
+wind_10_min1.tf_wpars = [cosd(points.angle_tf[1] .- i.wdir ) .* i.wspd  for i in eachrow(wind_10_min1)]
+wind_10_min1.te_wpar = [cosd(points.angle_te[1] .- i.wdir)  for i in eachrow(wind_10_min1)]
+wind_10_min1.te_wpars = [cosd(points.angle_te[1] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min1)]
 
-wind_10_min2.tf_wpar = [cosd(points.angle_tf[2] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min2)]
-wind_10_min2.te_wpar = [cosd(points.angle_te[2].- i.wdir) .* i.wspd for i in eachrow(wind_10_min2)]
+wind_10_min2.tf_wpar = [cosd(points.angle_tf[2] .- i.wdir)  for i in eachrow(wind_10_min2)]
+wind_10_min2.tf_wpars = [cosd(points.angle_tf[2] .- i.wdir) .* i.wspd  for i in eachrow(wind_10_min2)]
+wind_10_min2.te_wpar = [cosd(points.angle_te[2].- i.wdir)  for i in eachrow(wind_10_min2)]
+wind_10_min2.te_wpars = [cosd(points.angle_te[2].- i.wdir) .* i.wspd for i in eachrow(wind_10_min2)]
 
-wind_10_min3.tf_wpar = [cosd( points.angle_tf[3] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min3)]
-wind_10_min3.te_wpar = [cosd( points.angle_te[3] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min3)]
+wind_10_min3.tf_wpar = [cosd( points.angle_tf[3] .- i.wdir)  for i in eachrow(wind_10_min3)]
+wind_10_min3.tf_wpars = [cosd( points.angle_tf[3] .- i.wdir) .* i.wspd  for i in eachrow(wind_10_min3)]
+wind_10_min3.te_wpar = [cosd( points.angle_te[3] .- i.wdir)  for i in eachrow(wind_10_min3)]
+wind_10_min3.te_wpars = [cosd( points.angle_te[3] .- i.wdir) .* i.wspd for i in eachrow(wind_10_min3)]
 
 
 #---
@@ -565,62 +571,6 @@ combined_data3 = innerjoin(data_10min3,wind_10_min3,on=:dt)
 combined_data3 = combined_data3[combined_data3.wspd .!= 0, :]
 
 #---
-
-# wind shift?
-
-using LsqFit
-
-x = Float64.(combined_data3.wdir)
-y = Float64.(combined_data3.xch4_t1)
-x1 = Float64.(combined_data2.wdir)
-y1 = Float64.(combined_data2.xch4_t2)
-
-# xy = hcat(x, y)
-
-function oneD_Gaussian(x, p)
-    amplitude, μ, σ, offset = p
-    g = offset .+ amplitude .* exp.( -1/2 .* ((x .- μ) ./ σ).^2 )
-    return g[:]
-end
-
-
-p0 = Float64.([0.08, 250, 30, 1.9])
-p1 = Float64.([0.02, 143, 10, 1.9])
-
-# Noisy data
-# data_noisy = data + 0.2 * randn(size(data))
-
-fit = LsqFit.curve_fit(oneD_Gaussian, x, y, p0)
-
-newx = 200:340
-newx1 = 110:200
-
-#try weighting?
-wt = [1 / ((maximum(combined_data3.xch4_t2) - i)^2) for i in combined_data3.xch4_t2]
-wt2 = [1 / ((maximum(combined_data3.tf_wpar) - i)^2) for i in combined_data3.tf_wpar]
-wt1 = [1 / (.2*(maximum(combined_data2.xch4_t1) - i)^2) for i in combined_data2.xch4_t1]
-fit = LsqFit.curve_fit(oneD_Gaussian, x, y, wt, p0)
-fit2 = LsqFit.curve_fit(oneD_Gaussian, x, y, wt2, p0)
-fit1 = LsqFit.curve_fit(oneD_Gaussian, x1, y1, wt1, p1)
-histogram2d(combined_data3.wdir,combined_data3.xch4_t2,show_empty_bins=true,bins=4)
-vline!([points.angle_tf[1]])
-
-
-scatter(combined_data3.wdir,combined_data3.xch4_t2,label="3 minute average tf",marker_z=combined_data3.tf_wpar)
-vline!([points.angle_tf[3]])
-
-println(fit1.param)
-
-newy = oneD_Gaussian(newx, fit.param)
-oneD_Gaussian(combined_data3.wdir, fit4.param) == oneD_Gaussian(combined_data3.wdir,fit.param)
-newyy .- combined_data3.wdir
-newy1 = oneD_Gaussian(newx1, fit1.param)
-
-scatter!(combined_data3.wdir,newyy)
-
-
-scatter!(combined_data2.wdir,combined_data2.xch4_t1)
-#---
 scatter(combined_data3.tf_wpar .* combined_data3.wspd, combined_data3.xch4_t2 .- combined_data3.xch4_t1)
 
 scatter(wind_10_min1.te_wpar, data_10min1.xch4_t1)
@@ -631,6 +581,8 @@ scatter(points.x_te,points.y_te,label="te")
 scatter!(points.x_tf,points.y_tf,label="tf")
 scatter!(points.x_WM,points.y_WM,label="Active Face")
 
+
+#PLOT TIMESERIES
 #---
 pltpath = "/home/lawson/Data/EM27SUN/plots/Landfills/"
 #2022-07-26/2021-09-15
@@ -859,6 +811,50 @@ histogram!(data_tf4.xch4,α=.85,label="tf - upwind",c=:orange)
 plot!(title="2021-09-24 Twin Creeks")
 # png(pltpath*"20220726_xch4_hist")
 png(pltpath*"20210924_xch4_hist")
+
+
+
+#--------------- Investigate Wind Direction Implications...
+
+#TC 2022-07-29
+
+scatter(combined_data3.tf_wpar,combined_data3.xch4_t2,
+marker_z=combined_data3.tf_wpars,msw=0,xlabel="Cosine (θ-ϕ)",
+ylabel="tf XCH₄ (ppm)",cbartitle="Cosine (θ-ϕ) ⋅ |U|")
+
+#filtered data
+filt_data3 = combined_data3[combined_data3.tf_wpar .> .9 ,:]
+scatter(filt_data3.tf_wpar,filt_data3.xch4_t2,
+marker_z=filt_data3.tf_wpars,msw=0,xlabel="Cosine (θ-ϕ)",
+ylabel="tf XCH₄ (ppm)",cbartitle="Cosine (θ-ϕ) ⋅ |U|")
+
+histogram2d(filt_data3.tf_wpars,filt_data3.xch4_t2,bins=(5,10),
+show_empty_bins=true)
+
+scatter(filt_data3.dt,filt_data3.xch4_t2)
+scatter!(filt_data3.dt,filt_data3.xch4_t1,legend=:left)
+scatter!(Plots.twinx(),filt_data3.dt,filt_data3.wspd,c=:red,α=.23,legend=:topright)
+
+
+dist = sqrt(points)
+α1 = 0.22
+σ_y = α1 * dist * (1 + 0.0001*dist)^(-.5) #horizontal dispersion
+Ueff = 2.6
+Ueff = combined_data1.tf_wpar
+# Δxch4 = (combined_data3.xch4_t2.-combined_data3.xch4_t1) .* 1e-6 #ppm avg peak of histogram
+Δxch4 = (combined_data1.xch4_t2.-combined_data1.xch4_t1) .* 1e-6 #ppm avg peak of histogram
+# Δxch4 = (.007 - 0.000) * 1e-6 #in ppm
+ch4_ratio = 16.043 / 6.022143e23 #grams per molecule
+# column_abundance = maximum(combined_data1.luft_t2.-combined_data1.col_h2o_t2) #molecules per cm^-2, need to subtract water column
+column_abundance = mean(combined_data1.luft_t1.-combined_data1.col_h2o_t1) #molecules per cm^-2, need to subtract water column..
+column_abundance_molecules_m =column_abundance*100^2 #molecules per cm^-2 
+ΔΩ = Δxch4 * ch4_ratio * column_abundance_molecules_m  # we need g/m²
+Q₀ = sqrt(2*pi) * σ_y .* Ueff .* ΔΩ #g/s
+Q_kgh = Q₀/1000 *3600 # (1/100000)
+Q_kgd = Q_kgh*24 /1.2# (1/100000)
+
+
+
 
 ~hodl
 # nc_tb_path = "/home/lawson/HDD/Data/em27_ncfiles/tb/cumulative/"
